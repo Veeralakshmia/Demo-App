@@ -1,7 +1,14 @@
 package com.example.myapplication
 
+import android.Manifest
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -21,6 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -29,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.google.firebase.FirebaseApp
+
 
 // Screen routes
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
@@ -82,15 +93,79 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     onLaunchSkillsClick = { inputText ->
                         launchSkillsActivity(inputText)
+                    },
+                    {
+                        var intent = Intent(this, MainActivity::class.java)
+                        val pendingIntent = PendingIntent.getActivity(
+                            this, 0, intent,
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+
+                        // Build notification
+                        val builder =
+                            buildNotification("New Message", "Button triggered notification")
+                                .setContentIntent(pendingIntent)
+
+                        // Show notification
+                        with(NotificationManagerCompat.from(this)) {
+                            if (checkNotificationPermission()) {
+                                createNotificationChannel()
+                                notify(1, builder.build())
+                            }
+                        }
                     }
                 )
             }
         }
     }
+    var PERMISSION_REQUEST_CODE = 100
+    private fun checkNotificationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    PERMISSION_REQUEST_CODE
+                )
+                return false
+            }
+        }
+        return true
+    }
+
+    fun createNotificationChannel() {
+        // Only required for Android 8.0+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Notification"
+            val descriptionText = "Notification Desc"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("CHANNEL_ID", name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun buildNotification(title: String, content: String): NotificationCompat.Builder {
+        return NotificationCompat.Builder(this, "CHANNEL_ID")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+    }
+
 }
 
 @Composable
-fun MainScreen(onLaunchSkillsClick: (String) -> Unit) {
+fun MainScreen(onLaunchSkillsClick: (String) -> Unit, showNotification: (String) -> Unit) {
     val context = LocalContext.current
     val navController = rememberNavController()
     val items = listOf(Screen.Profile, Screen.Bookmarks)
@@ -143,7 +218,8 @@ fun MainScreen(onLaunchSkillsClick: (String) -> Unit) {
                 ProfileScreenContent(
                     name = "John Doe",
                     address = "123 Main Street, Madurai, Tamil Nadu, India",
-                    onLaunchSkillsClick = onLaunchSkillsClick
+                    onLaunchSkillsClick = onLaunchSkillsClick,
+                    showNotification = showNotification
                 )
             }
             composable(Screen.Bookmarks.route) {
@@ -209,7 +285,8 @@ fun FirebaseErrorScreen(onRetry: () -> Unit) {
 fun ProfileScreenContent(
     name: String = "Your Name",
     address: String = "Your Address",
-    onLaunchSkillsClick: (String) -> Unit
+    onLaunchSkillsClick: (String) -> Unit,
+    showNotification: (String) -> Unit
 ) {
     val localContext = LocalContext.current
     var textValue by remember { mutableStateOf("") }
@@ -327,8 +404,20 @@ fun ProfileScreenContent(
                     ) {
                         Text("Add Contact")
                     }
+
+
+                    Button(
+                        onClick = {
+                            showNotification("")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Show Notification")
+                    }
                 }
             }
         }
     }
+
+
 }
