@@ -66,7 +66,7 @@ class WeatherActivity : ComponentActivity() {
     fun getLastCity():String {
         return sharedPreferences.getString(LAST_CITY, null)?:"London"
     }
-    }
+}
 
     // Single data class for weather information
     data class WeatherData(

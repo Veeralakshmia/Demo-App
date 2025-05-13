@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 // Screen routes
@@ -87,6 +88,9 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "Failed to initialize Firebase. Some features may not work.", Toast.LENGTH_LONG).show()
             Log.e(TAG, "Firebase initialization failed in MainActivity")
         }
+        checkNotificationPermission()
+        getFCMToken()
+
 
         setContent {
             MyApplicationTheme {
@@ -135,6 +139,38 @@ class MainActivity : ComponentActivity() {
             }
         }
         return true
+    }
+
+    private fun getFCMToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Get the FCM token
+            val token = task.result
+
+            // Log and display the token
+            val msg = "Token: $token"
+            Log.d(TAG, msg)
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
+            // Here you would normally send this token to your server
+        }
+    }
+
+    private fun subscribeToTopic(topic: String) {
+        FirebaseMessaging.getInstance().subscribeToTopic(topic)
+            .addOnCompleteListener { task ->
+                val msg = if (task.isSuccessful) {
+                    "Subscribed to topic: $topic"
+                } else {
+                    "Failed to subscribe to topic: $topic"
+                }
+                Log.d(TAG, msg)
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            }
     }
 
     fun createNotificationChannel() {

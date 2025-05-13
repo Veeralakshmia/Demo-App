@@ -95,6 +95,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-common-ktx")
 
+    implementation("com.google.firebase:firebase-messaging")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Navigation Compose
