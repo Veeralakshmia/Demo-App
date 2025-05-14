@@ -46,6 +46,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
     object Profile : Screen("profile", Icons.Default.Person, "Profile")
     object Bookmarks : Screen("bookmarks", Icons.Default.Bookmark, "Bookmarks")
+    object Stocks : Screen("stocks", Icons.Default.AddChart, "Stocks")
 }
 
 class MainActivity : ComponentActivity() {
@@ -204,7 +205,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(onLaunchSkillsClick: (String) -> Unit, showNotification: (String) -> Unit) {
     val context = LocalContext.current
     val navController = rememberNavController()
-    val items = listOf(Screen.Profile, Screen.Bookmarks)
+    val items = listOf(Screen.Profile, Screen.Bookmarks, Screen.Stocks)
 
     // Make sure Firebase is initialized before creating the ViewModel
     val isFirebaseInitialized = remember {
@@ -269,6 +270,9 @@ fun MainScreen(onLaunchSkillsClick: (String) -> Unit, showNotification: (String)
                         }
                     )
                 }
+            }
+            composable(Screen.Stocks.route) {
+                context.startActivity(Intent(context, StocksActivity::class.java))
             }
         }
     }

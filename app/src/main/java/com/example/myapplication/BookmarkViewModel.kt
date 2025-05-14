@@ -38,6 +38,7 @@ class BookmarkViewModel(context: Context) {
         // Get database reference
         val database = FirebaseDatabase.getInstance(DATABASE_URL)
         database.getReference("bookmarks")
+
     } catch (e: Exception) {
         Log.e(TAG, "Error initializing database", e)
         _isError.value = true
