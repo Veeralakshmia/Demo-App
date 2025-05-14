@@ -454,6 +454,15 @@ fun ProfileScreenContent(
                     ) {
                         Text("Show Notification")
                     }
+
+                    Button(
+                        onClick = {
+                            localContext.startActivity(Intent(localContext, CameraActivity::class.java))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Open Camera")
+                    }
                 }
             }
         }
