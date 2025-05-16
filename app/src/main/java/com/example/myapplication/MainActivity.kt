@@ -253,7 +253,7 @@ fun MainScreen(onLaunchSkillsClick: (String) -> Unit, showNotification: (String)
         ) {
             composable(Screen.Profile.route) {
                 ProfileScreenContent(
-                    name = "John Doe",
+                    name = "Veeralakshmi",
                     address = "123 Main Street, Madurai, Tamil Nadu, India",
                     onLaunchSkillsClick = onLaunchSkillsClick,
                     showNotification = showNotification
